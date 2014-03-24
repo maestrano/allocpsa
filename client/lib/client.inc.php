@@ -46,6 +46,35 @@ class client extends db_entity {
                              ,"clientCategory"
                              );
 
+  
+  function save($push_to_maestrano=true) {
+      $result = parent::save();
+      
+      if ($result) {
+          error_log("key_fields=" . json_encode($this->key_field));
+          error_log("data_fields=" . json_encode($this->data_fields));
+      
+          try {
+              if ($push_to_maestrano) {
+                  error_log(__CLASS__ . " " . __FUNCTION__ . ": pushing to maestrano");
+                // Get Maestrano Service
+                $maestrano = MaestranoService::getInstance();
+
+                $db = new db_alloc();
+
+                if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
+                   $mno_org=new MnoSoaOrganization($db, new MnoSoaBaseLogger());
+                   $mno_org->send($this);
+                }
+              }
+          } catch (Exception $ex) {
+            // skip
+          }
+      }
+      
+      return $result;
+  }
+
 
   function delete() {
     // delete all contacts and comments linked with this client as well
@@ -340,9 +369,13 @@ class client extends db_entity {
   }
 
   function update_search_index_doc(&$index) {
-    $p =& get_cached_table("person");
+    // FIX - $p containing reference to cache was being assigned the result of the implode statement below
+    // FIX - $p now renamed to $person_cache
+    $person_cache =& get_cached_table("person");
     $clientModifiedUser = $this->get_value("clientModifiedUser");
-    $clientModifiedUser_field = $clientModifiedUser." ".$p[$clientModifiedUser]["username"]." ".$p[$clientModifiedUser]["name"];
+    $clientModifiedUser_field = $clientModifiedUser." ".$person_cache[$clientModifiedUser]["username"]." ".$person_cache[$clientModifiedUser]["name"];
+
+
 
     $this->get_value("clientStreetAddressOne") and $postal[] = $this->get_value("clientStreetAddressOne");
     $this->get_value("clientSuburbOne")        and $postal[] = $this->get_value("clientSuburbOne");
