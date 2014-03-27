@@ -239,7 +239,7 @@ class MnoSoaBaseOrganization extends MnoSoaBaseEntity
                 $this->addIdMapEntry($local_entity_id, $mno_entity_id);
             }
         }
-        $this->_log->debug(__FUNCTION__ . " end persist");
+        $this->_log->debug(__FUNCTION__ . " end");
     }
     
     /**

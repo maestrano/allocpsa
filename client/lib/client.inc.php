@@ -50,13 +50,9 @@ class client extends db_entity {
   function save($push_to_maestrano=true) {
       $result = parent::save();
       
-      if ($result) {
-          error_log("key_fields=" . json_encode($this->key_field));
-          error_log("data_fields=" . json_encode($this->data_fields));
-      
+      if ($result) {     
           try {
               if ($push_to_maestrano) {
-                  error_log(__CLASS__ . " " . __FUNCTION__ . ": pushing to maestrano");
                 // Get Maestrano Service
                 $maestrano = MaestranoService::getInstance();
 
@@ -93,7 +89,20 @@ class client extends db_entity {
       $comment->read_db_record($db);
       $comment->delete();
     }
-    return parent::delete();
+    $result = parent::delete();
+    
+    // Get Maestrano Service
+    $maestrano = MaestranoService::getInstance();
+    
+    $db = new db_alloc();
+
+    // DISABLED DELETE NOTIFICATIONS
+    if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
+        $mno_org=new MnoSoaOrganization($db, new MnoSoaBaseLogger());
+        $mno_org->sendDeleteNotification($this->get_id());
+    }
+    
+    return $result;
   }
 
   function is_owner() {
@@ -374,8 +383,6 @@ class client extends db_entity {
     $person_cache =& get_cached_table("person");
     $clientModifiedUser = $this->get_value("clientModifiedUser");
     $clientModifiedUser_field = $clientModifiedUser." ".$person_cache[$clientModifiedUser]["username"]." ".$person_cache[$clientModifiedUser]["name"];
-
-
 
     $this->get_value("clientStreetAddressOne") and $postal[] = $this->get_value("clientStreetAddressOne");
     $this->get_value("clientSuburbOne")        and $postal[] = $this->get_value("clientSuburbOne");

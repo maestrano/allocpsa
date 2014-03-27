@@ -44,7 +44,8 @@
             <td>Postcode</td>
             <td><input type="text" name="clientContactPostcode" value="{$clientContact_clientContactPostcode}"></td>
             <td class="nobr">Country</td>
-            <td><input type="text" name="clientContactCountry" value="{$clientContact_clientContactCountry}"></td>
+            <!-- <td><input type="text" name="clientContactCountry" value="{$clientContact_clientContactCountry}"></td> -->
+            <td>{$clientContactCountry_List}</td>
           </tr>
           <tr>
             <td colspan="6" class="right">
@@ -68,3 +69,10 @@
       </td>
     </tr>
   </table>
+  <script type="text/javascript"> 
+      window.onload=function() { 
+          document.getElementById('clientCountryOne').value='{$client_clientCountryOne}'; 
+          document.getElementById('clientCountryTwo').value='{$client_clientCountryTwo}';
+          document.getElementById('clientContactCountry').value='{$clientContact_clientContactCountry}';
+      }
+  </script>

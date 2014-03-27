@@ -91,7 +91,7 @@ class MnoSoaPerson extends MnoSoaBasePerson
         $this->_address->work->postalAddress->locality = $this->push_set_or_delete_value($this->_local_entity->get_value('clientContactSuburb'));
         $this->_address->work->postalAddress->region = $this->push_set_or_delete_value($this->_local_entity->get_value('clientContactState'));
         $this->_address->work->postalAddress->postalCode = $this->push_set_or_delete_value($this->_local_entity->get_value('clientContactPostcode'));
-        //$this->_address->work->postalAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientContactCountry'));
+        $this->_address->work->postalAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientContactCountry')));
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
     }
     
@@ -102,7 +102,7 @@ class MnoSoaPerson extends MnoSoaBasePerson
         $this->_local_entity->set_value('clientContactSuburb', $this->pull_set_or_delete_value($this->_address->work->postalAddress->locality));
         $this->_local_entity->set_value('clientContactState', $this->pull_set_or_delete_value($this->_address->work->postalAddress->region));
         $this->_local_entity->set_value('clientContactPostcode', $this->pull_set_or_delete_value($this->_address->work->postalAddress->postalCode));
-        $this->_local_entity->set_value('clientContactCountry', $this->pull_set_or_delete_value($this->mapISO3166ToCountry($this->_address->work->postalAddress->country)));
+        $this->_local_entity->set_value('clientContactCountry', $this->pull_set_or_delete_value($this->_address->work->postalAddress->country));
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
     }
     
@@ -144,25 +144,7 @@ class MnoSoaPerson extends MnoSoaBasePerson
     }
     
     protected function pushEntity() {
-        $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " start ");
-        $local_org_id = $this->_local_entity->get_value('clientID');
-        
-        if (!empty($local_org_id)) {
-            $organization = new client();
-            $organization->set_id($local_org_id);
-            $organization->select();
-
-            // clientCategory = 1 CLIENT -> CUSTOMER
-            if ($this->push_set_or_delete_value($organization->get_value('clientCategory')) == 1) {   
-                $this->_entity->customer = true;
-            }
-            // clientCategory = 3 SUPPLIER -> SUPPLIER
-            if ($this->push_set_or_delete_value($organization->get_value('clientCategory')) == 3) {
-                $this->_entity->supplier = true;
-            }
-            // clientCategory = 2/4/5/6/7 VENDOR/CONSULTANT/GOVERNMENT/NON-PROFIT/INTERNAL -> DO NOTHING
-        }
-        $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
+        // DO NOTHING
     }
     
     protected function pullEntity() {

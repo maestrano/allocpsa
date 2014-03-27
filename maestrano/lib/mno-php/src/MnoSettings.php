@@ -17,7 +17,7 @@ class MnoSettings
      * The name of the application.
      * @var string
      */
-    public $app_name = 'myapp';
+    public $app_name = '';
     
     /**
      * Is SSO enabled for this application

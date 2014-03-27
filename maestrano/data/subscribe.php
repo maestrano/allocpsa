@@ -13,8 +13,7 @@ $maestrano = MaestranoService::getInstance();
 
 if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
     $log = new MnoSoaBaseLogger();
-    $log->debug("Subscribe received a notification");
-    
+
     $notification = json_decode(file_get_contents('php://input'), false);
     $notification_entity = strtoupper(trim($notification->entity));
     

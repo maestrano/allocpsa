@@ -123,13 +123,13 @@ class MnoSoaOrganization extends MnoSoaBaseOrganization
         $this->_address->postalAddress->locality = $this->push_set_or_delete_value($this->_local_entity->get_value('clientSuburbOne'));
         $this->_address->postalAddress->region = $this->push_set_or_delete_value($this->_local_entity->get_value('clientStateOne'));
         $this->_address->postalAddress->postalCode = $this->push_set_or_delete_value($this->_local_entity->get_value('clientPostcodeOne'));
-        //$this->_address->postalAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientCountryOne'));
+        $this->_address->postalAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientCountryOne')));
         // STREET ADDRESS -> STREET ADDRESS
         $this->_address->streetAddress->streetAddress = $this->push_set_or_delete_value($this->_local_entity->get_value('clientStreetAddressTwo'));
         $this->_address->streetAddress->locality = $this->push_set_or_delete_value($this->_local_entity->get_value('clientSuburbTwo'));
         $this->_address->streetAddress->region = $this->push_set_or_delete_value($this->_local_entity->get_value('clientStateTwo'));
         $this->_address->streetAddress->postalCode = $this->push_set_or_delete_value($this->_local_entity->get_value('clientPostcodeTwo'));
-        //$this->_address->streetAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientCountryTwo'));
+        $this->_address->streetAddress->country = strtoupper($this->push_set_or_delete_value($this->_local_entity->get_value('clientCountryTwo')));
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
     }
     
@@ -141,13 +141,13 @@ class MnoSoaOrganization extends MnoSoaBaseOrganization
         $this->_local_entity->set_value('clientSuburbOne', $this->pull_set_or_delete_value($this->_address->postalAddress->locality));
         $this->_local_entity->set_value('clientStateOne', $this->pull_set_or_delete_value($this->_address->postalAddress->region));
         $this->_local_entity->set_value('clientPostcodeOne', $this->pull_set_or_delete_value($this->_address->postalAddress->postalCode));
-        $this->_local_entity->set_value('clientCountryOne', $this->pull_set_or_delete_value($this->mapISO3166ToCountry($this->_address->postalAddress->country)));
+        $this->_local_entity->set_value('clientCountryOne', $this->pull_set_or_delete_value($this->_address->postalAddress->country));
         // STREET ADDRESS -> STREET ADDRESS
         $this->_local_entity->set_value('clientStreetAddressTwo', $this->pull_set_or_delete_value($this->_address->streetAddress->streetAddress));
         $this->_local_entity->set_value('clientSuburbTwo', $this->pull_set_or_delete_value($this->_address->streetAddress->locality));
         $this->_local_entity->set_value('clientStateTwo', $this->pull_set_or_delete_value($this->_address->streetAddress->region));
         $this->_local_entity->set_value('clientPostcodeTwo', $this->pull_set_or_delete_value($this->_address->streetAddress->postalCode));
-        $this->_local_entity->set_value('clientCountryTwo', $this->pull_set_or_delete_value($this->mapISO3166ToCountry($this->_address->streetAddress->country)));
+        $this->_local_entity->set_value('clientCountryTwo', $this->pull_set_or_delete_value($this->_address->streetAddress->country));
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
     }
     
