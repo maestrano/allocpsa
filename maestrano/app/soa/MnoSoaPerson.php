@@ -14,7 +14,6 @@ class MnoSoaPerson extends MnoSoaBasePerson
 	$id = $this->getLocalEntityIdentifier();
 	
 	if (!empty($id)) {
-	    error_log("id is not empty, id = " . $id);
 	    $mno_id = $this->getMnoIdByLocalId($id);
 
 	    if ($this->isValidIdentifier($mno_id)) {
@@ -98,11 +97,7 @@ class MnoSoaPerson extends MnoSoaBasePerson
     
     protected function pullAddresses() {
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " start ");
-        $p =& get_cached_table("person");
-        error_log("p=" . json_encode($p));
-        
-        
-	// POSTAL ADDRESS -> POSTAL ADDRESS
+		// POSTAL ADDRESS -> POSTAL ADDRESS
         $this->_local_entity->set_value('clientContactStreetAddress', $this->pull_set_or_delete_value($this->_address->work->postalAddress->streetAddress));
         $this->_local_entity->set_value('clientContactSuburb', $this->pull_set_or_delete_value($this->_address->work->postalAddress->locality));
         $this->_local_entity->set_value('clientContactState', $this->pull_set_or_delete_value($this->_address->work->postalAddress->region));
@@ -189,34 +184,32 @@ class MnoSoaPerson extends MnoSoaBasePerson
         
         if (!empty($local_org_id)) {
             $mno_org_id = $this->getMnoIdByLocalIdName($local_org_id, "client");
-	    $this->_log->debug(__FUNCTION__ . " mno_id = " . json_encode($mno_org_id));
-            
-	    if ($this->isValidIdentifier($mno_org_id)) {    
-                $this->_log->debug("is valid identifier");
-		$this->_role->organization->id = $mno_org_id->_id;
-            } else if ($this->isDeletedIdentifier($mno_org_id)) {
-                $this->_log->debug(__FUNCTION__ . " deleted identifier");
-                // do not update
-                return;
-	    } else {
-                $this->_log->debug("before contacts find by id=" . json_encode($local_org_id));
-                $org_contact = new client();
-                $org_contact->set_id($local_id->_id);
-                $org_contact->select();
-                $this->_log->debug("after contacts find by id=" . json_encode($local_org_id));
-                
-                $organization = new MnoSoaOrganization($this->_db, $this->_log);		
-                $organization->send($org_contact);
-                $this->_log->debug("after mno soa organization send");
-                
-                $mno_org_id = $this->getMnoIdByLocalIdName($local_org_id, "client");
-                
-                if ($this->isValidIdentifier($mno_org_id)) {
-                    $this->_role->organization->id = $mno_org_id->_id;
-                }
-            }
-            
-	} else {
+
+			if ($this->isValidIdentifier($mno_org_id)) {    
+		            $this->_log->debug("is valid identifier");
+			$this->_role->organization->id = $mno_org_id->_id;
+		        } else if ($this->isDeletedIdentifier($mno_org_id)) {
+		            $this->_log->debug(__FUNCTION__ . " deleted identifier");
+		            // do not update
+		            return;
+			} else {
+		            $this->_log->debug("before contacts find by id=" . json_encode($local_org_id));
+		            $org_contact = new client();
+		            $org_contact->set_id($local_id->_id);
+		            $org_contact->select();
+		            $this->_log->debug("after contacts find by id=" . json_encode($local_org_id));
+		            
+		            $organization = new MnoSoaOrganization($this->_db, $this->_log);		
+		            $organization->send($org_contact);
+		            $this->_log->debug("after mno soa organization send");
+		            
+		            $mno_org_id = $this->getMnoIdByLocalIdName($local_org_id, "client");
+		            
+		            if ($this->isValidIdentifier($mno_org_id)) {
+		                $this->_role->organization->id = $mno_org_id->_id;
+                	}
+			}
+		} else {
             $this->_role = (object) array();
         }
         

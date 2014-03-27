@@ -11,8 +11,8 @@ class MnoSettings
      * The id of the application.
      * @var string
      */
-    public $app_id = '';    
-    
+    public $app_id = '';
+
     /**
      * The name of the application.
      * @var string

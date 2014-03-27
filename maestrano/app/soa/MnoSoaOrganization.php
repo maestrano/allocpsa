@@ -136,11 +136,7 @@ class MnoSoaOrganization extends MnoSoaBaseOrganization
     // DONE
     protected function pullAddresses() {
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " start ");
-        $p =& get_cached_table("person");
-        error_log("p=" . json_encode($p));
-        
-        
-	// POSTAL ADDRESS -> POSTAL ADDRESS
+		// POSTAL ADDRESS -> POSTAL ADDRESS
         $this->_local_entity->set_value('clientStreetAddressOne', $this->pull_set_or_delete_value($this->_address->postalAddress->streetAddress));
         $this->_local_entity->set_value('clientSuburbOne', $this->pull_set_or_delete_value($this->_address->postalAddress->locality));
         $this->_local_entity->set_value('clientStateOne', $this->pull_set_or_delete_value($this->_address->postalAddress->region));
@@ -212,7 +208,7 @@ class MnoSoaOrganization extends MnoSoaBaseOrganization
         if ($this->pull_set_or_delete_value($this->_entity->customer) == true) {
             $this->_local_entity->set_value('clientCategory', '1');
         } else if ($this->pull_set_or_delete_value($this->_entity->supplier) == true) {
-            $this->_local_entity->set_value('supplier', '3');
+            $this->_local_entity->set_value('clientCategory', '3');
         }
         // clientCategory = 2/4/5/6/7 VENDOR/CONSULTANT/GOVERNMENT/NON-PROFIT/INTERNAL -> DO NOTHING
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
@@ -221,13 +217,8 @@ class MnoSoaOrganization extends MnoSoaBaseOrganization
     // DONE
     protected function saveLocalEntity($push_to_maestrano, $status) {
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " start ");
-        
-        
-        
         $this->_local_entity->save($push_to_maestrano);
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
-        $p =& get_cached_table("person");
-        error_log("p=" . json_encode($p));
     }
     
     // DONE

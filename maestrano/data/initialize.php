@@ -4,7 +4,7 @@
 // Define root folder
 //-----------------------------------------------
 if (!defined('MAESTRANO_ROOT')) {
-  define("MAESTRANO_ROOT", realpath(dirname(__FILE__) . '/../../'));
+  define("MAESTRANO_ROOT", realpath(dirname(__FILE__) . '/../'));
 }
 
 require_once(MAESTRANO_ROOT . '/app/init/soa.php');
@@ -18,8 +18,8 @@ if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
         $timestamp = trim(file_get_contents($filepath));
         $current_timestamp = round(microtime(true) * 1000);
 
-        if (!empty($timestamp) || $timestamp == 0) {
-            $mno_entity = new MnoSoaBaseEntity($opts['db_connection'], new MnoSoaBaseLogger());
+        if (!empty($timestamp)) {
+            $mno_entity = new MnoSoaEntity($opts['db_connection'], new MnoSoaBaseLogger());
             $mno_entity->getUpdates($timestamp);
         }
     }
