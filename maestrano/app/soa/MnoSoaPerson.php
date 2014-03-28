@@ -182,14 +182,16 @@ class MnoSoaPerson extends MnoSoaBasePerson
 		            $this->_log->debug("after contacts find by id=" . json_encode($local_org_id));
 		            
 		            $organization = new MnoSoaOrganization($this->_db, $this->_log);		
-		            $organization->send($org_contact);
+			        $status = $organization->send($org_contact);
 		            $this->_log->debug("after mno soa organization send");
 		            
-		            $mno_org_id = $this->getMnoIdByLocalIdName($local_org_id, "client");
-		            
-		            if ($this->isValidIdentifier($mno_org_id)) {
-		                $this->_role->organization->id = $mno_org_id->_id;
-                	}
+					if ($status) {
+				        $mno_org_id = $this->getMnoIdByLocalIdName($local_org_id, "client");
+				        
+				        if ($this->isValidIdentifier($mno_org_id)) {
+				            $this->_role->organization->id = $mno_org_id->_id;
+		            	}
+					}
 			}
 		} else {
             $this->_role = (object) array();
@@ -215,8 +217,10 @@ class MnoSoaPerson extends MnoSoaBasePerson
                 $notification->entity = "organizations";
                 $notification->id = $this->_role->organization->id;
                 $organization = new MnoSoaOrganization($this->_db, $this->_log);		
-                $organization->receiveNotification($notification);
-                $this->_local_entity->set_value('clientID', $organization->getLocalEntityIdentifier());
+                $status = $organization->receiveNotification($notification);
+				if ($status) {
+	                $this->_local_entity->set_value('clientID', $organization->getLocalEntityIdentifier());
+				}
             }
         }
         $this->_log->debug(__CLASS__ . '.' . __FUNCTION__ . " end ");
