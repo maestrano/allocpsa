@@ -24,6 +24,15 @@ require_once("../alloc.php");
 
 $sess->Destroy();
 $url = $TPL["url_alloc_index"];
-alloc_redirect($url);
+
+// Hook:Maestrano
+// Load Maestrano
+//require realpath(dirname(__FILE__)) . '../maestrano/app/init/base.php';
+$maestrano = MaestranoService::getInstance();
+if ($maestrano->isSsoEnabled()) {
+  header("Location: " . $maestrano->getSsoLogoutUrl());
+} else {
+  alloc_redirect($url);
+}
 
 ?>

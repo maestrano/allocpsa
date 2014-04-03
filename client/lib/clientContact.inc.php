@@ -41,12 +41,31 @@ class clientContact extends db_entity {
                              ,"clientContactActive"
                              );
 
-  function save() {
+  function save($push_to_maestrano=true) {
     $rtn = parent::save();
     $c = new client();
     $c->set_id($this->get_value("clientID"));
     $c->select();
     $c->save();
+    
+    if ($rtn) {  
+        try {
+            if ($push_to_maestrano) {
+                // Get Maestrano Service
+                $maestrano = MaestranoService::getInstance();
+
+                $db = new db_alloc();
+
+                if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
+                     $mno_org=new MnoSoaPerson($db, new MnoSoaBaseLogger());
+                     $mno_org->send($this);
+                }
+            }
+        } catch (Exception $ex) {
+            // skip
+        }
+    }
+    
     return $rtn;
   }
 
@@ -161,7 +180,20 @@ class clientContact extends db_entity {
       $q = prepare("UPDATE project SET clientContactID = NULL where clientContactID = %d",$this->get_id());
       $db->query($q);
     }
-    return parent::delete();
+    $result = parent::delete();
+    
+    // Get Maestrano Service
+    $maestrano = MaestranoService::getInstance();
+
+    $db = new db_alloc();
+    
+    // DISABLED DELETE NOTIFICATIONS
+    if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
+        $mno_org=new MnoSoaPerson($db, new MnoSoaBaseLogger());
+        $mno_org->sendDeleteNotification($this->get_id());
+    }
+    
+    return $result;
   }
 
   function format_contact() {

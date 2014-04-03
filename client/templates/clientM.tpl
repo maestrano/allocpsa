@@ -118,7 +118,8 @@ $(document).ready(function() {
           </tr>
           <tr>
             <td>Country</td>
-            <td><input type="text" name="clientCountryOne" value="{$client_clientCountryOne}" size="25" tabindex="9"></td>
+            <!-- <td><input type="text" name="clientCountryOne" value="{$client_clientCountryOne}" size="25" tabindex="9"></td> -->
+            <td>{$clientCountryOne_List}</td>
           </tr>
         </table>
       </div>
@@ -152,7 +153,8 @@ $(document).ready(function() {
           </tr>
           <tr>
             <td>Country</td>
-            <td><input type="text" name="clientCountryTwo" value="{$client_clientCountryTwo}" size="25" tabindex="14"></td>
+            <!-- <td><input type="text" name="clientCountryTwo" value="{$client_clientCountryTwo}" size="25" tabindex="14"></td> -->
+            <td>{$clientCountryTwo_List}</td>
           </tr>
         </table>
       </div>

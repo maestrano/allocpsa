@@ -211,17 +211,48 @@ if (defined("IN_INSTALL_RIGHT_NOW")) {
   // authentication. And will be responsible for setting up any of:
   // $current_user and $sess.
   if (!defined("NO_AUTH")) {
+    
+    // Hook:Maestrano
+    // Load Maestrano and start session (not done by alloc)
+    require realpath(dirname(__FILE__)) . '/maestrano/app/init/base.php';
+    session_start();
+    $maestrano = MaestranoService::getInstance();
+    // Require authentication straight away if intranet
+    // mode enabled
+    if ($maestrano->isSsoIntranetEnabled()) {
+      if (!$maestrano->getSsoSession()->isValid()) {
+        header("Location: " . $maestrano->getSsoInitUrl());
+      }
+    }
 
     $current_user = &singleton("current_user",new person());
     $sess = new session();
-
+    
+    
+    //var_dump($_SESSION);
+    
     // If session hasn't been started re-direct to login page
     if (!$sess->Started()) {
-      defined("NO_REDIRECT") && exit("Session expired. Please <a href='".$TPL["url_alloc_login"]."'>log in</a> again.");
-      alloc_redirect($TPL["url_alloc_login"] . ($_SERVER['REQUEST_URI'] != '/' ? '?forward='.urlencode($_SERVER['REQUEST_URI']) : ''));
+      // Hook:Maestrano
+      // Redirect to SSO login
+      if ($maestrano->isSsoEnabled()) {
+        header("Location: " . $maestrano->getSsoInitUrl());
+      } else {
+        defined("NO_REDIRECT") && exit("Session expired. Please <a href='".$TPL["url_alloc_login"]."'>log in</a> again.");
+        alloc_redirect($TPL["url_alloc_login"] . ($_SERVER['REQUEST_URI'] != '/' ? '?forward='.urlencode($_SERVER['REQUEST_URI']) : ''));
+      }
+      
 
     // Else load up the current_user and continue
     } else if ($sess->Get("personID")) {
+      // Hook:Maestrano
+      // Check Maestrano session is still valid
+      if ($maestrano->isSsoEnabled()) {
+        if (!$maestrano->getSsoSession()->isValid()) {
+          header("Location: " . $maestrano->getSsoInitUrl());
+        }
+      }
+      
       $current_user->load_current_user($sess->Get("personID"));
     }
   }

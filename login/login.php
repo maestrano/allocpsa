@@ -20,8 +20,9 @@
  * along with allocPSA. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-define("NO_AUTH",1);
+// Hook:Maestrano
+// Remove "NO_AUTH" mode for login page
+//define("NO_AUTH",1);
 require_once("../alloc.php");
 
 $sess = new session();
