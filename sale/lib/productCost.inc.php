@@ -48,11 +48,17 @@ class productCost extends db_entity {
       return $this->save();
     }
   }
-
-
-
-
-
+  
+  function save() {
+    $result = parent::save();
+    
+    $local_product_id = $this->get_value("productID");
+    if (!empty($local_product_id)) {
+        push_product_to_maestrano($local_product_id);
+    }
+    
+    return $result;
+  }
 }
 
 ?>

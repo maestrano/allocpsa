@@ -32,6 +32,9 @@ class product extends db_entity {
                              ,"sellPriceIncTax" => array("empty_to_null"=>false)
                              ,"description"
                              ,"comment"
+                             ,"productTypeID"
+                             ,"productUnit"
+                             ,"productCode"
                              ,"productActive"
                              );
 
@@ -117,6 +120,16 @@ class product extends db_entity {
     include_template(dirname(__FILE__)."/../templates/productListS.tpl");
   }
 
+  function save() {
+    $result = parent::save();
+    
+    $local_product_id = $this->get_id();
+    if (!empty($local_product_id)) {
+        push_product_to_maestrano($local_product_id);
+    }
+    
+    return $result;
+  }
 }
 
 ?>

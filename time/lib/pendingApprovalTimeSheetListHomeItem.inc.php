@@ -112,7 +112,7 @@ function get_pending_timesheet_db() {
                              LEFT JOIN project on project.projectID = timeSheet.projectID
                        WHERE timeSheet.status='manager'
                          AND timeSheet.projectID NOT IN
-                               (SELECT projectID FROM projectPerson WHERE personID != %d AND roleID = 3)
+                               (SELECT projectID FROM projectPerson WHERE personID != %d AND roleID = 3 AND projectPerson.status!='INACTIVE')
                     GROUP BY timeSheet.timeSheetID 
                     ORDER BY timeSheet.dateSubmittedToManager
                      ",$current_user->get_id());
@@ -127,7 +127,7 @@ function get_pending_timesheet_db() {
                              LEFT JOIN project on project.projectID = timeSheet.projectID
                              LEFT JOIN projectPerson on project.projectID = projectPerson.projectID 
                              LEFT JOIN role on projectPerson.roleID = role.roleID
-                       WHERE projectPerson.personID = %d AND role.roleHandle = 'timeSheetRecipient' AND timeSheet.status='manager'
+                       WHERE projectPerson.personID = %d AND role.roleHandle = 'timeSheetRecipient' AND timeSheet.status='manager' AND projectPerson.status!='INACTIVE'
                     GROUP BY timeSheet.timeSheetID 
                     ORDER BY timeSheet.dateSubmittedToManager"
                      , $current_user->get_id()

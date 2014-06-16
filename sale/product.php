@@ -22,6 +22,16 @@
 
 require_once("../alloc.php");
 
+function get_product_cost_count($productID) {
+    $db = new db_alloc();
+    $query = prepare("SELECT COUNT(*) as count FROM productCost WHERE productID = %d AND isPercentage = false AND productCostActive = true", $productID);
+    $db->query($query);
+    $record = (object) $db->next_record();
+    
+    
+    return (empty($record)) ? null : $record->count;
+}
+
 function show_productCost_list($productID, $template, $percent = false) {
   global $TPL;
   unset($TPL["display"],$TPL["taxOptions"]); // otherwise the commissions don't display.
@@ -105,6 +115,7 @@ $TPL["taxRate"] = $taxRate;
 if ($_POST["save"]) {
   $product->read_globals();
   $product->set_value("productActive", isset($_POST["productActive"]) ? 1 : 0);
+  !$product->get_value("productCode") and alloc_error("Please enter a Product Code.");
   !$product->get_value("productName") and alloc_error("Please enter a Product Name.");
   !$product->get_value("sellPrice")   and alloc_error("Please enter a Sell Price.");
 
@@ -170,6 +181,10 @@ if ($_POST["save_costs"] || $_POST["save_commissions"]) {
 $m = new meta("currencyType");
 $ops = $m->get_assoc_array("currencyTypeID","currencyTypeID");
 $TPL["sellPriceCurrencyOptions"] = page::select_options($ops,$product->get_value("sellPriceCurrencyTypeID"));
+
+$productTypeOps = array("PURCHASED"=>"PURCHASED", "MANUFACTURED"=>"MANUFACTURED", "SERVICE"=>"SERVICE");
+$TPL["productTypeOptions"] = page::select_options($productTypeOps,$product->get_value("productTypeID"));
+$TPL["productTypeID"] = $product->get_value("productTypeID");
 
 $TPL["main_alloc_title"] = "Product: ".$product->get_value("productName")." - ".APPLICATION_NAME;
 $product->set_values();

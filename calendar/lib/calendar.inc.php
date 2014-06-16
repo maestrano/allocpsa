@@ -115,7 +115,7 @@ class calendar {
                        WHERE personID = %d 
                          AND dateTargetStart >= '%s' 
                          AND dateTargetStart < '%s'
-                         AND taskStatus NOT IN (".$ts_closed.")"
+                         AND taskStatus NOT IN (".$ts_closed.") AND taskStatus!='deleted'"
                     ,$this->person->get_id()
                     ,$this->first_date
                     ,$this->last_date);
@@ -137,7 +137,7 @@ class calendar {
                        WHERE personID = %d 
                          AND dateTargetCompletion >= '%s' 
                          AND dateTargetCompletion < '%s'
-                         AND taskStatus NOT IN (".$ts_closed.")"
+                         AND taskStatus NOT IN (".$ts_closed.") AND taskStatus!='deleted'"
                     ,$this->person->get_id()
                     ,$this->first_date
                     ,$this->last_date);

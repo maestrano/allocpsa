@@ -68,8 +68,8 @@ if ($_POST["do_step_2"]) {
     $db_tables[] = "project";
     $db_tables[] = "projectCommissionPerson";
     $db_tables[] = "projectPerson";
-    $query["join"] = " LEFT JOIN projectCommissionPerson ON project.projectID = projectCommissionPerson.projectID";
-    $query["join"].= " LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID";
+    $query["join"] = " LEFT JOIN projectCommissionPerson ON project.projectID = projectCommissionPerson.projectID AND project.projectStatus!='Deleted'";
+    $query["join"].= " LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'";
   }
 
   if ($_POST["mod"] == "task") {

@@ -25,3 +25,9 @@ require_once APP_DIR . '/alloc.php';
 // e.g:
 $opts = array();
 $opts['db_connection'] = new db_alloc();
+
+MnoSoaLogger::initialize();
+$current_user = &singleton("current_user",new person());
+$current_user->load_current_user('1');
+
+?>

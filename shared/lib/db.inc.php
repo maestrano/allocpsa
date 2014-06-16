@@ -167,7 +167,9 @@ class db {
 
   function query() {
     global $TPL;
+    
     $current_user = &singleton("current_user");
+    
     $start = microtime();
     $this->connect();
     $args = func_get_args();
@@ -187,9 +189,11 @@ class db {
 
       if ($str = mysql_error()) {
         $rtn = false;
+        error_log("Query failed: ".$str."\n".$query,mysql_errno());
         $this->error("Query failed: ".$str."\n".$query,mysql_errno());
         if (self::$started_transaction) {
           $this->_query("ROLLBACK");
+          error_log("Rolling back");
           self::$started_transaction = false;
         }
 

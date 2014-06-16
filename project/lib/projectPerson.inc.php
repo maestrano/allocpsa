@@ -40,6 +40,25 @@ class projectPerson extends db_entity {
     return eregi($this->get_value("emailDateRegex"), date("YmdD"));
   }
 
+  function delete() { 
+    $result = parent::delete();
+    
+    // MNO HOOK
+    $local_project_id = $this->get_value("projectID");
+    push_project_to_maestrano($local_project_id);
+    
+    return $result;
+  }
+  
+  function save() {
+    $result = parent::save();
+    
+    // MNO HOOK
+    $local_project_id = $this->get_value("projectID");
+    push_project_to_maestrano($local_project_id);
+    
+    return $result;
+  }
 
   function is_owner($person = "") {
 
@@ -68,7 +87,7 @@ class projectPerson extends db_entity {
   function get_projectPerson_row($projectID, $personID) {
     $q = prepare("SELECT * 
                     FROM projectPerson 
-                   WHERE projectID = %d AND personID = %d"
+                   WHERE projectID = %d AND personID = %d AND projectPerson.status!='INACTIVE'" 
                 ,$projectID,$personID);
     $db = new db_alloc();
     $db->query($q);

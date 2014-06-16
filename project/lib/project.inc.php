@@ -69,7 +69,7 @@ class project extends db_entity {
     // If we're archiving the project, then archive the tasks.
     if ($old["projectStatus"] != "Archived" && $this->get_value("projectStatus") == "Archived") {
       $db = new db_alloc();
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND SUBSTRING(taskStatus,1,6) != 'closed'",$this->get_id());
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND SUBSTRING(taskStatus,1,6) != 'closed' AND task.taskStatus!='deleted'",$this->get_id());
       $db->query($q);
       while ($row = $db->row()) {
         $task = new task();
@@ -86,7 +86,7 @@ class project extends db_entity {
     // If we're un-archiving the project, then un-archive the tasks.
     if ($old["projectStatus"] == "Archived" && $this->get_value("projectStatus") != "Archived") {
       $db = new db_alloc();
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskStatus = 'closed_archived'",$this->get_id());
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskStatus = 'closed_archived' AND task.taskStatus!='deleted'",$this->get_id());
       $id = $db->query($q);
       while ($row = $db->row($id)) {
         $q = prepare("SELECT * FROM auditItem
@@ -111,14 +111,26 @@ class project extends db_entity {
     }
 
     $TPL["message"] or $TPL["message_good"][] = "Project saved.";
-    return parent::save();
+    $result = parent::save();
+    
+    // MNO HOOK
+    $local_project_id = $this->get_id();
+    push_project_to_maestrano($local_project_id);
+    
+    return $result;
   }
 
   function delete() { 
-    $q = prepare("DELETE from projectPerson WHERE projectID = %d",$this->get_id()); 
+    $q = prepare("UPDATE projectPerson SET status='INACTIVE' WHERE projectID = %d",$this->get_id()); 
     $db = new db_alloc();
     $db->query($q);
-    return parent::delete();
+    $result = parent::delete();
+    
+    // MNO HOOK
+    $local_project_id = $this->get_id();
+    push_project_to_maestrano($local_project_id);
+    
+    return $result;
   }
 
   function get_url() {
@@ -181,7 +193,7 @@ class project extends db_entity {
       $query = prepare("SELECT personID, projectID, pp.roleID, ppr.roleName, ppr.roleHandle 
                           FROM projectPerson pp 
                      LEFT JOIN role ppr ON ppr.roleID = pp.roleID 
-                         WHERE projectID = '%d' and personID = '%d' ".$p
+                         WHERE projectID = '%d' and personID = '%d' ".$p . " AND pp.status!='INACTIVE'"
                       ,$this->get_id(), $person->get_id());
       #echo "<br><br>".$query;
 
@@ -207,7 +219,7 @@ class project extends db_entity {
     $q = prepare("SELECT projectPerson.personID as personID
                     FROM projectPerson
                LEFT JOIN role ON projectPerson.roleID = role.roleID 
-                   WHERE projectPerson.projectID = %d AND role.roleHandle = '%s'",$this->get_id(),$role);
+                   WHERE projectPerson.projectID = %d AND role.roleHandle = '%s' AND projectPerson.status!='INACTIVE'",$this->get_id(),$role);
     $db = new db_alloc();
     $db->query($q);
     while ($db->next_record()) {
@@ -296,7 +308,7 @@ class project extends db_entity {
                       FROM project
                  LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID
                  LEFT JOIN role ON projectPerson.roleID = role.roleID
-                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql."
+                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql." AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'
                   GROUP BY projectID 
                   ORDER BY project.projectName"
                   ,$personID);
@@ -306,7 +318,7 @@ class project extends db_entity {
                       FROM project
                  LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID
                  LEFT JOIN role ON projectPerson.roleID = role.roleID
-                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql."
+                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql." AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'
                        AND role.roleHandle = 'isManager' 
                   GROUP BY projectID 
                   ORDER BY project.projectName"
@@ -317,7 +329,7 @@ class project extends db_entity {
                       FROM project
                  LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID
                  LEFT JOIN role ON projectPerson.roleID = role.roleID
-                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql."
+                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql." AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'
                        AND role.roleHandle = 'timeSheetRecipient' 
                   GROUP BY projectID 
                   ORDER BY project.projectName"
@@ -328,17 +340,17 @@ class project extends db_entity {
                       FROM project
                  LEFT JOIN projectPerson ON project.projectID = projectPerson.projectID
                  LEFT JOIN role ON projectPerson.roleID = role.roleID
-                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql."
+                     WHERE projectPerson.personID = '%d' ".$projectStatus_sql." AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'
                        AND (role.roleHandle = 'isManager' or role.roleHandle = 'timeSheetRecipient')
                   GROUP BY projectID 
                   ORDER BY project.projectName"
                   ,$personID);
 
     } else if ($type == "all") {
-      $q = prepare("SELECT projectID,projectName FROM project ORDER BY projectName");
+      $q = prepare("SELECT projectID,projectName FROM project ORDER BY projectName WHERE project.projectStatus!='Deleted'");
 
     } else if ($type) {
-      $q = prepare("SELECT projectID,projectName FROM project WHERE project.projectStatus = '%s' ORDER BY projectName",$type);
+      $q = prepare("SELECT projectID,projectName FROM project WHERE project.projectStatus = '%s' AND project.projectStatus!='Deleted' ORDER BY projectName",$type);
     }
     return $q;
   }
@@ -428,6 +440,7 @@ class project extends db_entity {
                                                               ,$filter["projectNameMatches"]
                                                               ,$filter["projectNameMatches"]
                                                               ,$filter["projectNameMatches"]);
+    $sql .= " AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted' ";
     return $sql;
   }
 
@@ -448,10 +461,13 @@ class project extends db_entity {
 
     if ($_FORM["personID"]) { 
       $from.= " LEFT JOIN projectPerson on projectPerson.projectID = project.projectID ";
+      $filtersuffix = " AND projectPerson.status!='INACTIVE'";
     }
 
     if (is_array($filter) && count($filter)) {
-      $filter = " WHERE ".implode(" AND ",$filter);
+      $filter = " WHERE ".implode(" AND ",$filter) . " project.projectStatus!='Deleted' " . $filtersuffix;
+    } else {
+        $filter = " WHERE project.projectStatus!='Deleted' " . $filtersuffix;
     }
 
     $q = "SELECT project.*, client.* 
@@ -665,7 +681,7 @@ class project extends db_entity {
 
     // If passed array projectIDs then join them up with commars and put them in an sql subset
     if (is_array($filter["projectIDs"]) && count($filter["projectIDs"])) {
-      return sprintf_implode("(".$table.".projectID = %d)",$filter["projectIDs"]);
+      return sprintf_implode("(".$table.".projectID = %d)",$filter["projectIDs"])." AND (project.projectStatus!='Deleted')";
 
     // If there are no projects in $filter["projectIDs"][] and we're attempting the first option..
     } else if ($firstOption) {
@@ -717,14 +733,14 @@ class project extends db_entity {
 
       // Get primary client contact from Project page
       $db = new db_alloc();
-      $q = prepare("SELECT projectClientName,projectClientEMail FROM project WHERE projectID = %d",$projectID);
+      $q = prepare("SELECT projectClientName,projectClientEMail FROM project WHERE projectID = %d AND project.projectStatus!='Deleted'",$projectID);
       $db->query($q);
       $db->next_record();
       $interestedPartyOptions[$db->f("projectClientEMail")]["name"] = $db->f("projectClientName");
       $interestedPartyOptions[$db->f("projectClientEMail")]["external"] = "1";
   
       // Get all other client contacts from the Client pages for this Project
-      $q = prepare("SELECT clientID FROM project WHERE projectID = %d",$projectID);
+      $q = prepare("SELECT clientID FROM project WHERE projectID = %d AND project.projectStatus!='Deleted'",$projectID);
       $db->query($q);
       $db->next_record();
       $clientID = $db->f("clientID");
@@ -736,7 +752,7 @@ class project extends db_entity {
       $q = prepare("SELECT emailAddress, firstName, surname, person.personID, username
                      FROM projectPerson 
                 LEFT JOIN person on projectPerson.personID = person.personID 
-                    WHERE projectPerson.projectID = %d AND person.personActive = 1 ",$projectID);
+                    WHERE projectPerson.projectID = %d AND person.personActive = 1 AND projectPerson.status!='INACTIVE'",$projectID);
       $db->query($q);
       while ($db->next_record()) {
         unset($name);

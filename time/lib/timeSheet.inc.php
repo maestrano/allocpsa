@@ -141,7 +141,7 @@ class timeSheet extends db_entity {
                     FROM projectPerson
                LEFT JOIN project on projectPerson.projectID = project.projectID
                    WHERE projectPerson.projectID = %d
-                     AND projectPerson.personID = %d"
+                     AND projectPerson.personID = %d  AND projectPerson.status!='INACTIVE' " 
                  ,$this->get_value("projectID")
                  ,$this->get_value("personID"));
 

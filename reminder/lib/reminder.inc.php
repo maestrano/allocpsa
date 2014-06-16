@@ -65,7 +65,7 @@ class reminder extends db_entity {
       $query = prepare("SELECT * 
                           FROM projectPerson 
                      LEFT JOIN person ON projectPerson.personID=person.personID 
-                         WHERE projectPerson.projectID = %d 
+                         WHERE projectPerson.projectID = %d AND projectPerson.status!='INACTIVE'
                       ORDER BY person.username",$this->get_value('reminderLinkID'));
 
     } else if ($type == "task") {
@@ -73,14 +73,14 @@ class reminder extends db_entity {
       $recipients = array("-3" => "Task Manager"
                          ,"-2" => "Task Assignee");
 
-      $db->query("SELECT projectID FROM task WHERE taskID = %d",$this->get_value('reminderLinkID'));
+      $db->query("SELECT projectID FROM task WHERE taskID = %d AND task.taskStatus!='deleted'",$this->get_value('reminderLinkID'));
       $db->next_record();
 
       if ($db->f('projectID')) {
         $query = prepare("SELECT * 
                             FROM projectPerson 
                        LEFT JOIN person ON projectPerson.personID=person.personID 
-                           WHERE projectPerson.projectID = %d 
+                           WHERE projectPerson.projectID = %d AND projectPerson.status!='INACTIVE'
                         ORDER BY person.username",$db->f('projectID'));
 
       } else {
@@ -182,13 +182,13 @@ class reminder extends db_entity {
     if ($type == "project") {
       $project = new project();
       $project->set_id($this->get_value('reminderLinkID'));
-      if ($project->select() == false || $project->get_value('projectStatus') == "Archived") {
+      if ($project->select() == false || $project->get_value('projectStatus') == "Archived" || $project->get_value('projectStatus') == "Deleted") {
         return false;
       }
     } else if ($type == "task") {
       $task = new task();
       $task->set_id($this->get_value('reminderLinkID'));
-      if ($task->select() == false || substr($task->get_value("taskStatus"),0,6) == 'closed') {
+      if ($task->select() == false || substr($task->get_value("taskStatus"),0,6) == 'closed' || $task->get_value('taskStatus') == "deleted") {
         return false;
       }
     } else if ($type == "client") {

@@ -471,6 +471,8 @@ CREATE TABLE tf (
   tfModifiedUser integer DEFAULT NULL,
   qpEmployeeNum integer default NULL,
   quickenAccount varchar(255) default NULL,
+  accountTypeID varchar(255) NOT NULL,
+  tfCode varchar(255) NOT NULL,
   tfActive boolean NOT NULL DEFAULT true
   ) ENGINE=InnoDB PACK_KEYS=0;
 
@@ -638,7 +640,10 @@ CREATE TABLE product (
   sellPriceIncTax boolean NOT NULL default false,
   description varchar(255),
   comment TEXT,
-  productActive boolean NOT NULL default true
+  productTypeID varchar(255) NOT NULL,
+  productUnit varchar(255) NOT NULL,
+  productActive boolean NOT NULL default true,
+  productCode varchar(255) NOT NULL
 ) ENGINE=InnoDB PACK_KEYS=0;
 
 DROP TABLE IF EXISTS productCost;

@@ -160,7 +160,7 @@ require_once("../alloc.php");
       $query = prepare("SELECT projectPerson.*, roleSequence
                           FROM projectPerson 
                      LEFT JOIN role ON role.roleID = projectPerson.roleID
-                         WHERE projectID=%d ORDER BY roleSequence DESC,projectPersonID ASC", $projectID);
+                         WHERE projectID=%d AND projectPerson.status!='INACTIVE' ORDER BY roleSequence DESC,projectPersonID ASC", $projectID);
       $db->query($query);
 
       while ($db->next_record()) {
@@ -187,7 +187,7 @@ require_once("../alloc.php");
       $query = prepare("SELECT personID, roleName
                           FROM projectPerson
                      LEFT JOIN role ON role.roleID = projectPerson.roleID
-                         WHERE projectID = %d 
+                         WHERE projectID = %d AND projectPerson.status!='INACTIVE'
                       GROUP BY projectPerson.personID
                       ORDER BY roleSequence DESC, personID ASC", $projectID);
       $db->query($query);
@@ -339,7 +339,7 @@ if ($_POST["save"]) {
   }  
 
   // enforced at the database, but show a friendlier error here if possible
-  $query = prepare("SELECT COUNT(*) as count FROM project WHERE projectShortName = '%s'", $db->esc($project->get_value("projectShortName")));
+  $query = prepare("SELECT COUNT(*) as count FROM project WHERE projectShortName = '%s' AND project.projectStatus!='Deleted'", $db->esc($project->get_value("projectShortName")));
   if (!$definitely_new_project) {
     $query .= prepare(" AND projectID != %d", $project->get_id());
   }
@@ -394,7 +394,7 @@ if ($_POST["save"]) {
     $TPL["message_good"][] = "Project details copied successfully.";
 
     // Copy project people
-    $q = prepare("SELECT * FROM projectPerson WHERE projectID = %d",$p->get_id());
+    $q = prepare("SELECT * FROM projectPerson WHERE projectID = %d AND projectPerson.status!='INACTIVE'",$p->get_id());
     $db = new db_alloc();
     $db->query($q);
     while ($row = $db->row()) {
@@ -432,7 +432,7 @@ if ($_POST["save"]) {
 if ($projectID) {
 
   if ($_POST["person_save"]) {
-    $q = prepare("SELECT * FROM projectPerson WHERE projectID = %d",$project->get_id());
+    $q = prepare("SELECT * FROM projectPerson WHERE projectID = %d AND projectPerson.status!='INACTIVE'",$project->get_id());
     $db = new db_alloc();
     $db->query($q);
     while ($db->next_record()) {
@@ -598,7 +598,7 @@ $TPL["clientHidden"].= "<input type=\"hidden\" id=\"clientContactID\" name=\"cli
 // Gets $ per hour, even if user uses metric like $200 Daily
 function get_projectPerson_hourly_rate($personID,$projectID) {
   $db = new db_alloc();
-  $q = prepare("SELECT rate,rateUnitID FROM projectPerson WHERE personID = %d AND projectID = %d",$personID,$projectID);
+  $q = prepare("SELECT rate,rateUnitID FROM projectPerson WHERE personID = %d AND projectID = %d AND projectPerson.status!='INACTIVE'",$personID,$projectID);
   $db->query($q);
   $db->next_record();
   $rate = $db->f("rate");

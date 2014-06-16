@@ -331,7 +331,7 @@ class person extends db_entity {
                           FROM task 
                          WHERE taskTypeID = 'Message'
                            AND personID = %d
-                           AND taskStatus NOT IN (".$ts_closed.")"
+                           AND taskStatus NOT IN (".$ts_closed.") AND task.taskStatus!='deleted'"
                        ,$this->get_id());
       $db->query($query);
       if ($db->next_record()) {

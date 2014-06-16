@@ -139,7 +139,7 @@ if ($search && $needle && $category == "search_projects") {
   $TPL["search_title"] = "Task Search";
 
   if (!$noRedirect && is_numeric($needle)) {
-    $query = prepare("SELECT taskID FROM task WHERE taskID = %d",$needle);
+    $query = prepare("SELECT taskID FROM task WHERE taskID = %d AND task.taskStatus!='deleted'",$needle);
     $db->query($query);
     if ($db->next_record()) {
       alloc_redirect($TPL["url_alloc_task"]."taskID=".$db->f("taskID"));
