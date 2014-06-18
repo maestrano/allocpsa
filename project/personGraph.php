@@ -48,7 +48,7 @@ if ($projectID) {
   $person_query = prepare("SELECT person.*
                              FROM person, projectPerson
                             WHERE person.personID = projectPerson.personID
-                              AND projectPerson.projectID=%d", $project->get_id());
+                              AND projectPerson.projectID=%d AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'", $project->get_id());
 
 } else if ($_GET["personID"]) {
   $person_query = prepare("SELECT * FROM person WHERE personID = %d ORDER BY username",$_GET["personID"]);

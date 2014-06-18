@@ -72,7 +72,7 @@ class stats {
         break;
       }
 
-      $query = prepare("SELECT * FROM projectPerson WHERE projectID=%d", $project->get_id());
+      $query = prepare("SELECT * FROM projectPerson WHERE projectID=%d AND projectPerson.status!='INACTIVE' ", $project->get_id());
       $db_sub->query($query);
       while ($db_sub->next_record()) {
         $projectPerson = new projectPerson();
@@ -117,7 +117,7 @@ class stats {
     $q = "SELECT person.personID, person.username, count(taskID) as tally
             FROM task 
        LEFT JOIN person ON task.personID = person.personID 
-           WHERE task.taskStatus NOT IN (".$ts_closed.")
+           WHERE task.taskStatus NOT IN (".$ts_closed.") AND task.taskStatus!='deleted'
         GROUP BY person.personID";
 
     $db->query($q);
@@ -130,7 +130,7 @@ class stats {
     $q = "SELECT person.personID, person.username, count(taskID) as tally
             FROM task 
        LEFT JOIN person ON task.personID = person.personID 
-           WHERE task.taskStatus NOT IN (".$ts_closed.")
+           WHERE task.taskStatus NOT IN (".$ts_closed.") AND task.taskStatus!='deleted'
         GROUP BY person.personID";
 
     $db->query($q);
@@ -144,6 +144,7 @@ class stats {
     $q = "SELECT person.personID, person.username, count(taskID) as tally
             FROM task 
        LEFT JOIN person ON task.personID = person.personID 
+           WHERE task.taskStatus!='deleted'
         GROUP BY person.personID";
 
     $db->query($q);
@@ -159,7 +160,7 @@ class stats {
     $q = prepare("SELECT person.personID, person.username, count(taskID) as tally, task.dateCreated
             FROM task 
        LEFT JOIN person ON task.personID = person.personID 
-           WHERE ('%s' <= task.dateCreated)
+           WHERE ('%s' <= task.dateCreated) AND task.taskStatus!='deleted'
         GROUP BY person.personID",$date);
 
     $db->query($q);

@@ -30,6 +30,8 @@ class tf extends db_entity {
                              ,"tfModifiedTime"
                              ,"qpEmployeeNum"
                              ,"quickenAccount"
+                             ,"accountTypeID"
+                             ,"tfCode"
                              ,"tfActive"
                              );
 
@@ -271,7 +273,16 @@ class tf extends db_entity {
     return (array)$rows;
   }
 
-
+  function save() {
+    $result = parent::save();
+    
+    $local_tf_id = $this->get_id();
+    if (!empty($local_tf_id)) {
+        push_account_to_maestrano($local_tf_id);
+    }
+    
+    return $result;
+  }
 }
 
 ?>

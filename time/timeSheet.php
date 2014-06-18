@@ -674,7 +674,7 @@ if ($_GET["newTimeSheet_projectID"] && !$projectID) {
   }
 }
 
-if ($_GET["newTimeSheet_projectID"] && !$db->qr("SELECT * FROM projectPerson WHERE personID = %d AND projectID = %d",$current_user->get_id(),$_GET["newTimeSheet_projectID"])) {
+if ($_GET["newTimeSheet_projectID"] && !$db->qr("SELECT * FROM projectPerson WHERE personID = %d AND projectID = %d AND projectPerson.status!='INACTIVE' ",$current_user->get_id(),$_GET["newTimeSheet_projectID"])) {
   alloc_error("You are not a member of the project (id:".page::htmlentities($_GET["newTimeSheet_projectID"])."), please get a manager to add you to the project.");
 }
 

@@ -145,7 +145,15 @@ class db_entity {
       return false;
     }
     if ($this->data_table && $this->key_field) {
-      $query = "SELECT * FROM ".db_esc($this->data_table)." WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+      if ($this->data_table == "projectPerson") {
+        $query = "SELECT * FROM ".db_esc($this->data_table)." WHERE status!='INACTIVE' AND ".$this->get_name_equals_value(array($this->key_field), " AND ");
+      } else if ($this->data_table == "project") {
+        $query = "SELECT * FROM ".db_esc($this->data_table)." WHERE projectStatus!='Deleted' AND ".$this->get_name_equals_value(array($this->key_field), " AND ");  
+      } else if ($this->data_table == "task") {
+        $query = "SELECT * FROM ".db_esc($this->data_table)." WHERE taskStatus!='deleted' AND ".$this->get_name_equals_value(array($this->key_field), " AND ");  
+      } else {
+        $query = "SELECT * FROM ".db_esc($this->data_table)." WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+      }
       if ($this->debug)
         echo "db_entity->select query: $query<br>\n";
       $db = $this->get_db();
@@ -177,7 +185,24 @@ class db_entity {
     if (!$this->has_key_values()) {
       return false;
     }
-    $query = "DELETE FROM ".db_esc($this->data_table)." WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+    
+    $query = "";
+    
+    switch ($this->data_table) {
+        case 'project':
+            $query = "UPDATE ".db_esc($this->data_table)." SET projectStatus='Deleted' WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+            break;
+        case 'projectPerson':
+            $query = "UPDATE ".db_esc($this->data_table)." SET status='INACTIVE' WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+            break;
+        case 'task':
+            $query = "call change_task_status(" . $this->get_id() . ",'deleted')";
+            break;
+        default:
+            $query = "DELETE FROM ".db_esc($this->data_table)." WHERE ".$this->get_name_equals_value(array($this->key_field), " AND ");
+            break;
+    }
+    
     if ($this->debug)
       echo "db_entity->delete query: $query<br>\n";
     $db = $this->get_db();

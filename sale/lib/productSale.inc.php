@@ -259,7 +259,7 @@ class productSale extends db_entity {
       $this->set_value("status", "admin");
 
       // 1. from salesperson to admin
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s'",$cyberadmin,$taskname1);
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s' AND task.taskStatus!='deleted'",$cyberadmin,$taskname1);
       if (config::for_cyber() && !$db->qr($q)) {
         $task = new task();
         $task->set_value("projectID",$cyberadmin); // Cyber Admin Project
@@ -311,7 +311,7 @@ class productSale extends db_entity {
       }
 
       // 2. from admin to salesperson
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s'",$cyberadmin,$taskname2);
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s' AND task.taskStatus!='deleted'",$cyberadmin,$taskname2);
       if (config::for_cyber() && !$db->qr($q)) {
         $task = new task();
         $task->set_value("projectID",$cyberadmin); // Cyber Admin Project
@@ -325,7 +325,7 @@ class productSale extends db_entity {
         $task->set_value("dateTargetCompletion",date("Y-m-d",date("U")+(60*60*24*7)));
         $task->save();
 
-        $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s'"
+        $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s' AND task.taskStatus!='deleted'"
                     ,$cyberadmin,$taskname1);
         $rai_row = $db->qr($q);
         if ($rai_row) {
@@ -340,7 +340,7 @@ class productSale extends db_entity {
       }
 
       // 3. from salesperson to admin
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s'",$cyberadmin,$taskname3);
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s' AND task.taskStatus!='deleted'",$cyberadmin,$taskname3);
       if (config::for_cyber() && !$db->qr($q)) {
         $task = new task();
         $task->set_value("projectID",$cyberadmin); // Cyber Admin Project
@@ -362,7 +362,7 @@ class productSale extends db_entity {
       }
 
       // 4. from admin to salesperson
-      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s'",$cyberadmin,$taskname4);
+      $q = prepare("SELECT * FROM task WHERE projectID = %d AND taskName = '%s' AND task.taskStatus!='deleted'",$cyberadmin,$taskname4);
       if (config::for_cyber() && !$db->qr($q)) {
         $task = new task();
         $task->set_value("projectID",$cyberadmin); // Cyber Admin Project
@@ -475,7 +475,7 @@ class productSale extends db_entity {
     $query = prepare("SELECT productSale.*, project.projectName, client.clientName
                         FROM productSale 
                    LEFT JOIN client ON productSale.clientID = client.clientID
-                   LEFT JOIN project ON productSale.projectID = project.projectID
+                   LEFT JOIN project ON productSale.projectID = project.projectID AND project.projectStatus!='Deleted'
                     ".$f);
     $db->query($query);
     $statii = productSale::get_statii();
@@ -590,7 +590,9 @@ class productSale extends db_entity {
     // display the list of project name.
     $db = new db_alloc();
     if (!$_FORM['showAllProjects']) {
-      $filter = "WHERE projectStatus = 'Current' ";
+      $filter = "WHERE projectStatus = 'Current' AND project.projectStatus!='Deleted' ";
+    } else {
+      $filter = "WHERE project.projectStatus!='Deleted'";
     }
     $query = prepare("SELECT projectID AS value, projectName AS label FROM project $filter ORDER by projectName");
     $rtn["show_project_options"] = page::select_options($query, $_FORM["projectID"],70);

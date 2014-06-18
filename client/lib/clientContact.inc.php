@@ -57,7 +57,7 @@ class clientContact extends db_entity {
                 $db = new db_alloc();
 
                 if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
-                     $mno_org=new MnoSoaPerson($db, new MnoSoaBaseLogger());
+                     $mno_org=new MnoSoaPerson();
                      $mno_org->send($this);
                 }
             }
@@ -75,7 +75,7 @@ class clientContact extends db_entity {
     $db = new db_alloc();
 
     if ($projectID) {
-      $db->query("SELECT clientID FROM project WHERE projectID = %d",$projectID);
+      $db->query("SELECT clientID FROM project WHERE projectID = %d AND project.projectStatus!='Deleted'",$projectID);
       $row = $db->qr();
       if ($row["clientID"]) {
         $extra = prepare("AND clientID = %d",$row["clientID"]);
@@ -110,7 +110,7 @@ class clientContact extends db_entity {
     $db = new db_alloc();
 
     if ($projectID) {
-      $db->query("SELECT clientID FROM project WHERE projectID = %d",$projectID);
+      $db->query("SELECT clientID FROM project WHERE projectID = %d AND project.projectStatus!='Deleted'",$projectID);
       $row = $db->qr();
       if ($row["clientID"]) {
         $extra = prepare("AND clientID = %d",$row["clientID"]);
@@ -189,7 +189,7 @@ class clientContact extends db_entity {
     
     // DISABLED DELETE NOTIFICATIONS
     if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
-        $mno_org=new MnoSoaPerson($db, new MnoSoaBaseLogger());
+        $mno_org=new MnoSoaPerson();
         $mno_org->sendDeleteNotification($this->get_id());
     }
     

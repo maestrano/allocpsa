@@ -17,23 +17,26 @@ class MnoSoaDB extends MnoSoaBaseDB {
     * @return 	boolean Record inserted
     */
     
-    public function addIdMapEntry($local_id, $local_entity_name, $mno_id, $mno_entity_name) {	
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . " start");
-	// Fetch record
-	$query = prepare("INSERT INTO mno_id_map (mno_entity_guid, mno_entity_name, app_entity_id, app_entity_name, db_timestamp) VALUES "
+    public static function addIdMapEntry($local_id, $local_entity_name, $mno_id, $mno_entity_name) 
+	{
+        MnoSoaLogger::debug("start");
+		// Fetch record
+		$db = new db_alloc();
+
+		$query = prepare("INSERT INTO mno_id_map (mno_entity_guid, mno_entity_name, app_entity_id, app_entity_name, db_timestamp) VALUES "
                                       . "('%s', '%s', '%s', '%s', UTC_TIMESTAMP)"
                          , $mno_id
                          , strtoupper($mno_entity_name)
                          , $local_id
                          , strtoupper($local_entity_name));	
-        $this->_db->query($query);
-        $id = $this->_db->get_insert_id();
+		$db->query($query);
+		$id = $db->get_insert_id();
         
-        $this->_log->debug("addIdMapEntry query = ".$query);
+        MnoSoaLogger::debug("addIdMapEntry query = ".$query);
         
-        if (empty($id)) {
-            return false;
-        } 
+		if (empty($id)) {
+			return false;
+		}
         
         return true;
     }
@@ -45,22 +48,25 @@ class MnoSoaDB extends MnoSoaBaseDB {
     *
     * @return 	boolean Record found	
     */
-    public function getMnoIdByLocalIdName($local_id, $local_entity_name)
+    public static function getMnoIdByLocalId($local_id, $local_entity_name, $mno_entity_name)
     {
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . " start");
+        MnoSoaLogger::debug("start");
+		$db = new db_alloc();
         $mno_entity = null;
         
-	// Fetch record
-	$query = prepare("SELECT mno_entity_guid, mno_entity_name, deleted_flag from mno_id_map where app_entity_id='%s' and app_entity_name='%s'"
+		// Fetch record
+		$query = prepare("SELECT mno_entity_guid, mno_entity_name, deleted_flag "
+                       . "FROM mno_id_map "
+                       . "WHERE app_entity_id='%s' and app_entity_name='%s' and mno_entity_name='%s'"
                           , $local_id
-                          , strtoupper($local_entity_name));
+                          , strtoupper($local_entity_name)
+                          , strtoupper($mno_entity_name));
         
-        $this->_db->query($query);
-        
-        $row = $this->_db->next_record();
+        $db->query($query);
+        $row = $db->next_record();
                 
-	// Return id value
-	if ($row) {
+		// Return id value
+		if ($row) {
             $mno_entity_guid = trim($row["mno_entity_guid"]);
             $mno_entity_name = trim($row["mno_entity_name"]);
             $deleted_flag = trim($row["deleted_flag"]);
@@ -70,27 +76,31 @@ class MnoSoaDB extends MnoSoaBaseDB {
                     "_id" => $mno_entity_guid,
                     "_entity" => $mno_entity_name,
                     "_deleted_flag" => $deleted_flag
-                );
-            }
+			);
+		}
 	}
         
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . "returning mno_entity = ".json_encode($mno_entity));
-	return $mno_entity;
+        MnoSoaLogger::debug("returning mno_entity = ".json_encode($mno_entity));
+		return $mno_entity;
     }
     
-    public function getLocalIdByMnoIdName($mno_id, $mno_entity_name)
+    public static function getLocalIdByMnoId($mno_id, $mno_entity_name, $local_entity_name)
     {
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . " start");
-	$local_entity = null;
+        MnoSoaLogger::debug("start");
+		$db = new db_alloc();
+		$local_entity = null;
         
 	// Fetch record
-	$query = prepare("SELECT app_entity_id, app_entity_name, deleted_flag from mno_id_map where mno_entity_guid='%s' and mno_entity_name='%s'"
+	$query = prepare("SELECT app_entity_id, app_entity_name, deleted_flag "
+                       . "FROM mno_id_map "
+                       . "WHERE mno_entity_guid='%s' and mno_entity_name='%s' and app_entity_name='%s'"
                           , $mno_id
-                          , strtoupper($mno_entity_name));
+                          , strtoupper($mno_entity_name)
+                          , strtoupper($local_entity_name));
 
-        $this->_db->query($query);
+        $db->query($query);
         
-        $row = $this->_db->next_record();
+        $row = $db->next_record();
         
 	// Return id value
 	if ($row) {
@@ -107,20 +117,45 @@ class MnoSoaDB extends MnoSoaBaseDB {
             }
 	}
 	
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . "returning mno_entity = ".json_encode($local_entity));
-	return $local_entity;
+        MnoSoaLogger::debug("returning mno_entity = ".json_encode($local_entity));
+		return $local_entity;
     }
     
-    public function deleteIdMapEntry($local_id, $local_entity_name) 
+    public static function getLocalUserIdByMnoUserId($mno_user_id)
     {
-        $this->_log->debug(__CLASS__ . ' ' . __FUNCTION__ . " start");
+	$db = new db_alloc();
+        $user_query = "SELECT personID FROM person WHERE mno_uid = '$mno_user_id'";
+        $db->query($user_query);
+	$row = $db->next_record();
+        
+        MnoSoaLogger::debug("row[personID] = ".json_encode($row['personID']));
+        
+        return (!empty($row['personID'])) ? $row['personID'] : null;
+    }
+    
+    public static function getMnoUserIdByLocalUserId($local_user_id)
+    {
+		$db = new db_alloc();
+        $user_query = "SELECT mno_uid FROM person WHERE personID = '$local_user_id'";
+		$db->query($user_query);
+		$row = $db->next_record();
+        
+        MnoSoaLogger::debug("row[mno_uid] = ".json_encode($row['mno_uid']));
+        
+        return (!empty($row['mno_uid'])) ? $row['mno_uid'] : null;
+    } 
+    
+    public static function deleteIdMapEntry($local_id, $local_entity_name) 
+    {
+        MnoSoaLogger::debug("start");
+		$db = new db_alloc();
         // Logically delete record
         $query = prepare("UPDATE mno_id_map SET deleted_flag=1 WHERE app_entity_id='%s' and app_entity_name='%s'"
                         , $local_id
                         , strtoupper($local_entity_name));
-        $this->_db->query($query);
+        $db->query($query);
         
-        $this->_log->debug("deleteIdMapEntry query = ".$query);
+        MnoSoaLogger::debug("deleteIdMapEntry query = ".$query);
         
         return true;
     }

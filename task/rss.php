@@ -42,7 +42,7 @@ $status_types = config::get_config_item('rssStatusFilter');
 // find the last max_events audit events that are status change or reassignment
 $query = prepare("SELECT entityID, fieldName, changeType, dateChanged, oldValue, taskName, taskStatus, task.personID, projectID
                     FROM auditItem LEFT JOIN task as task ON entityID = taskID
-                   WHERE entityName = 'task' AND changeType = 'FieldChange' AND fieldName IN ('taskStatus', 'personID')
+                   WHERE entityName = 'task' AND changeType = 'FieldChange' AND fieldName IN ('taskStatus', 'personID') AND task.taskStatus!='deleted'
                 ORDER BY dateChanged DESC
                    LIMIT %d", $max_events);
 $db->query($query);
@@ -98,6 +98,7 @@ while ($row = $db->next_record()) {
 
 $query = prepare("SELECT taskID, dateCreated, taskName, personID, taskStatus, projectID
                    FROM task
+                   WHERE  task.taskStatus!='deleted'
                ORDER BY dateCreated DESC
                   LIMIT %d", $max_events);
 $db->query($query);

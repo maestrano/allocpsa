@@ -59,7 +59,7 @@ class client extends db_entity {
                 $db = new db_alloc();
 
                 if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
-                   $mno_org=new MnoSoaOrganization($db, new MnoSoaBaseLogger());
+                   $mno_org=new MnoSoaOrganization();
                    $mno_org->send($this);
                 }
               }
@@ -98,7 +98,7 @@ class client extends db_entity {
 
     // DISABLED DELETE NOTIFICATIONS
     if ($maestrano->isSoaEnabled() and $maestrano->getSoaUrl()) {
-        $mno_org=new MnoSoaOrganization($db, new MnoSoaBaseLogger());
+        $mno_org=new MnoSoaOrganization();
         $mno_org->sendDeleteNotification($this->get_id());
     }
     

@@ -84,7 +84,7 @@ function show_new_invoiceItem($template) {
 
       // Time Sheet dropdown
       $db = new db_alloc();
-      $q = prepare("SELECT projectID FROM project WHERE clientID = %d",$invoice->get_value("clientID"));
+      $q = prepare("SELECT projectID FROM project WHERE clientID = %d AND project.projectStatus!='Deleted'",$invoice->get_value("clientID"));
       $db->query($q);
       $projectIDs = array();
       while ($row = $db->row()) {
@@ -95,7 +95,7 @@ function show_new_invoiceItem($template) {
                         FROM timeSheet
                    LEFT JOIN project ON project.projectID = timeSheet.projectID 
                        WHERE timeSheet.projectID IN (%s) 
-                         AND timeSheet.status != 'finished'
+                         AND timeSheet.status != 'finished' AND project.projectStatus!='Deleted'
                     GROUP BY timeSheet.timeSheetID
                     ORDER BY timeSheetID
                      ",$projectIDs);

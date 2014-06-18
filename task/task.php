@@ -49,7 +49,7 @@ define("PAGE_IS_PRINTABLE",1);
   function get_parent_taskIDs($taskID) {
     $q = prepare("SELECT taskID,taskName,parentTaskID 
                     FROM task 
-                   WHERE taskID = %d 
+                   WHERE taskID = %d AND task.taskStatus!='deleted'
                      AND (taskID != parentTaskID OR parentTaskID IS NULL)"
                 ,$taskID);
     $db = new db_alloc();
@@ -285,7 +285,7 @@ $parent_task->set_values("parentTask_");
 
 $TPL["taskType_taskTypeID"] = $task->get_value("taskTypeID");
 
-$q = prepare("SELECT clientID FROM project LEFT JOIN task ON task.projectID = project.projectID WHERE taskID = %d",$task->get_id());
+$q = prepare("SELECT clientID FROM project LEFT JOIN task ON task.projectID = project.projectID WHERE taskID = %d AND task.taskStatus!='deleted'",$task->get_id());
 $db->query($q);
 $db->next_record();
 if ($db->f("clientID")) {

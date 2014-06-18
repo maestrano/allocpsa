@@ -69,12 +69,12 @@ case 2:
     }
   } else if ($parentType == "project") {
     if ($current_user->have_role("admin")) {
-      $query = "SELECT * FROM project WHERE projectStatus != 'Archived' ORDER BY projectName";
+      $query = "SELECT * FROM project WHERE projectStatus != 'Archived' AND project.projectStatus!='Deleted' ORDER BY projectName";
     } else {
       $query = prepare("SELECT * 
                           FROM project 
                      LEFT JOIN projectPerson ON project.projectID=projectPerson.projectID 
-                         WHERE personID='%d' 
+                         WHERE personID='%d' AND projectPerson.status!='INACTIVE' AND project.projectStatus!='Deleted'
                            AND projectStatus != 'Archived'
                       ORDER BY projectName", $personID);
     }
@@ -87,9 +87,9 @@ case 2:
 
   } else if ($parentType == "task") {
     if ($current_user->have_role("admin")) {
-      $query = "SELECT * FROM task";
+      $query = "SELECT * FROM task WHERE task.taskStatus!='deleted'";
     } else {
-      $query = prepare("SELECT * FROM task WHERE personID=%d ORDER BY taskName", $personID);
+      $query = prepare("SELECT * FROM task WHERE personID=%d AND task.taskStatus!='deleted' ORDER BY taskName", $personID);
     }
     $db->query($query);
     while ($db->next_record()) {

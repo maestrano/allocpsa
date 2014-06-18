@@ -191,7 +191,7 @@ class MnoSsoUser extends MnoSsoBaseUser
   protected function setLocalUid()
   {
     if($this->local_id) {
-      $upd = $this->connection->query("UPDATE person SET mno_uid = {$this->uid} WHERE personID = {$this->local_id}");
+      $upd = $this->connection->query("UPDATE person SET mno_uid = '{$this->uid}' WHERE personID = {$this->local_id}");
       return $upd;
     }
     

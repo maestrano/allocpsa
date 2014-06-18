@@ -74,7 +74,7 @@ class task extends db_entity {
                               ,dateClosed
                               ,closerID
                           FROM task
-                         WHERE taskID = %d",$this->get_id());
+                         WHERE taskID = %d AND task.taskStatus!='deleted'",$this->get_id());
         // Changing a task's status changes these fields.
         // Unfortunately the call to save() below erroneously nukes these fields.
         // So we manually set them to whatever change_task_status() has dictated.
@@ -84,14 +84,26 @@ class task extends db_entity {
         $this->set_value("dateClosed",$row["dateClosed"]);
         $this->set_value("closerID",$row["closerID"]);
       }
-
-      return parent::save();
+      
+      $result = parent::save();
+      
+      // MNO HOOK
+      $local_project_id = $this->get_project_id();
+      push_project_to_maestrano($local_project_id);
+      
+      return $result;
     }
   }
-
+  
   function delete() {
     if ($this->can_be_deleted()) {
-      return parent::delete();
+      $result = parent::delete();
+       
+      // MNO HOOK
+      $local_project_id = $this->get_value("projectID");
+      push_project_to_maestrano($local_project_id);
+      
+      return $result;
     }
   }
 
@@ -301,7 +313,7 @@ class task extends db_entity {
   }
 
   function update_children($field,$value="") {
-    $q = prepare("SELECT * FROM task WHERE parentTaskID = %d",$this->get_id());
+    $q = prepare("SELECT * FROM task WHERE parentTaskID = %d  AND task.taskStatus!='deleted'",$this->get_id());
     $db = new db_alloc();
     $db->query($q);
     while ($db->row()) {
@@ -334,7 +346,8 @@ class task extends db_entity {
                         FROM task 
                         WHERE projectID= '%d' 
                         AND taskTypeID = 'Parent'
-                        AND (taskStatus NOT IN (".$ts_closed.") OR taskID = %d)
+                        AND (taskStatus NOT IN (".$ts_closed.") OR taskID = %d) 
+                        AND task.taskStatus!='deleted'
                         ORDER BY taskName", $projectID, $parentTaskID);
       $options = page::select_options($query, $parentTaskID,70);
     }
@@ -439,7 +452,7 @@ class task extends db_entity {
                       FROM projectPerson 
                  LEFT JOIN person ON person.personID = projectPerson.personID
                  LEFT JOIN role ON role.roleID = projectPerson.roleID
-                     WHERE person.personActive = 1 ".$manager_sql."
+                     WHERE person.personActive = 1 ".$manager_sql." AND projectPerson.status!='INACTIVE'
                        AND projectID = %d
                   ORDER BY firstName, username
                    ",$projectID);
@@ -773,7 +786,7 @@ class task extends db_entity {
     }
 
     // Task status filtering
-    $filter["taskStatus"] and $sql[] = task::get_taskStatus_sql($filter["taskStatus"]);
+    $filter["taskStatus"] and $sql[] = task::get_taskStatus_sql($filter["taskStatus"]) . " AND task.taskStatus!='deleted' ";
     $filter["taskTypeID"] and $sql[] = sprintf_implode("task.taskTypeID = '%s'",$filter["taskTypeID"]);
 
     // Filter on %taskName%
@@ -882,7 +895,9 @@ class task extends db_entity {
 
     // Get a hierarchical list of tasks
     if (is_array($filter) && count($filter)) {
-      $f = " WHERE ".implode(" AND ",$filter);
+      $f = " WHERE ".implode(" AND ",$filter) . " AND projectPerson.status!='INACTIVE' AND task.taskStatus!='deleted' AND projectStatus!='Deleted' ";
+    } else {
+      $f = " WHERE projectPerson.status!='INACTIVE' AND task.taskStatus!='deleted' AND project.projectStatus!='Deleted' ";
     }
 
     $uid = sprintf("%d",$current_user->get_id());

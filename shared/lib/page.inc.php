@@ -318,6 +318,69 @@ EOD;
     }
     return $str;
   }
+  function select_account_type_option_groups($rows,$selected_value=NULL,$max_length=45,$escape=true) {
+    /**
+     * Builds up options for use in a html select widget (works with multiple selected too)
+     *
+     * @param   $options          mixed   An sql query or an array of options
+     * @param   $selected_value   string  The current selected element
+     * @param   $max_length       int     The maximum string length of the label
+     * @return                    string  The string of options
+     */
+    
+    if (is_array($rows)) {
+
+      // Coerce selected options into an array
+      if (is_array($selected_value)) {
+        $selected_values = $selected_value;
+      } else if ($selected_value !== NULL) {
+        $selected_values[] = $selected_value;
+      }
+      
+      $iter1 = 1;
+      foreach ($rows as $lvl_1_option_name => $lvl_1_option_group) {
+        $str.="<optgroup label=\"" . $iter1 . ". " . $lvl_1_option_name . "\">\n";
+        $iter2 = 1;
+        foreach ($lvl_1_option_group as $lvl_2_option_name => $lvl_2_option_group) {
+            $str.="<optgroup label=\"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;". $iter1 . "." . $iter2 . ". " . $lvl_2_option_name."\">\n";
+            $iter3 = 1;
+            foreach ($lvl_2_option_group as $value=>$label) {
+              $sel = "";
+
+              if ($value && !$label) { 
+                $label = $value;
+              }
+
+              // If an array of selected values!
+              if (is_array($selected_values)) {
+                foreach ($selected_values as $selected_value) {
+                  if ($selected_value === "" && $value === 0) {
+                    // continue
+                  } else if ($selected_value == $value) {
+                    $sel = " selected";
+                  }
+                }
+              }
+
+              $label = str_replace("&nbsp;"," ",$label);
+              if (strlen((string)$label) > $max_length) {
+                $label = substr($label, 0, $max_length - 3)."...";
+              } 
+
+              $escape and $label = page::htmlentities($label);
+              $label = str_replace(" ","&nbsp;",$label);
+
+              $str.= "\n<option value=\"".$value."\"".$sel.">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;". $iter1 . "." . $iter2 . "." . $iter3 . ". " .$label."</option>";
+              $iter3++;
+            }
+            $iter2++;
+        }
+        $str.="</optgroup>\n";
+        $iter1++;
+      }
+    }
+    return $str;
+  }
   function expand_link($id, $text="New ",$id_to_hide="") {
     global $TPL;
     $id_to_hide and $extra = "$('#".$id_to_hide."').slideToggle('fast');";

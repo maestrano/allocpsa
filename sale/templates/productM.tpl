@@ -39,7 +39,15 @@ $(document).ready(function() {
   <tr>
     <td colspan="2" valign="top">
       <div style="float:left; width:47%; padding:0px 12px; vertical-align:top;">
-
+        <div class="view">
+          <h6>Product Code{page::mandatory($productName)}</h6>
+          <h2 style="margin-bottom:0px; display:inline;">{=$productCode}</h2>
+        </div>
+        <div class="edit">
+          <h6>Product Code{page::mandatory($productName)}</h6>
+          <input type="text" maxlength="20" id="productName" name="productCode" value="{$productCode}">
+        </div>
+        
         <div class="view">
           <h6>Product Name{page::mandatory($productName)}</h6>
           <h2 style="margin-bottom:0px; display:inline;">{=$productName}</h2>
@@ -79,7 +87,7 @@ $(document).ready(function() {
         <div class="view">
           <h6>Sell Price{$taxName and print " (ex ".$taxName.")"}{page::mandatory($sellPrice)}<div>Active</div></h6>
           <div style="float:left; width:30%;">
-            {$sellPrice} {$sellPriceCurrencyTypeID}
+            {$sellPrice} {$sellPriceCurrencyTypeID} &nbsp;/&nbsp; {$productUnit}
           </div>
           <div style="float:right; width:50%;">
             {if $productActive}Yes{else}No{/}
@@ -93,12 +101,23 @@ $(document).ready(function() {
             {if $taxName}
             <button type="button" id="gstbutton" class="filter_button" style="font-size:70%;padding:1px;">&nbsp;- {$taxName}</button>
             {/}
+            &nbsp;&nbsp;<b>Unit:</b>&nbsp;
+            <input type="text" size="8" name="productUnit" id="productUnit" value="{$productUnit}">
           </div>
           <div style="float:right; width:50%;" class="nobr">
             <input type="checkbox" name="productActive" {if $productActive || !$productID}checked="checked"{/}>
           </div>
         </div>
-    
+        {if $productTypeID}
+        <div class="view">
+          <h6>Type</h6>
+          {$productTypeID}
+        </div>
+        {/}
+        <div class="edit">
+          <h6>Type</h6>
+          <select name="productTypeID">{$productTypeOptions}</select>
+        </div>
       </div>
     </td>
   </tr>
@@ -129,8 +148,10 @@ $(document).ready(function() {
   <tr>
     <th class="header">Product Costs
       <span>
+        {if get_product_cost_count($productID) < 1}
         <a href="#x" class="magic" onClick="$('#product_cost_footer').before('<tr>'+$('#product_cost_row').html()+'</tr>');">New</a>
         {page::help("product_fixedCost")}
+        {/}
       </span>
     </th>
   </tr>

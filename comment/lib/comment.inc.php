@@ -830,8 +830,8 @@ class comment extends db_entity {
     has("project") and $projectIDs = project::get_projectID_sql($filter,"task");
     $projectIDs and $sql1["projectIDs"] = $projectIDs;
     $projectIDs and $sql2["projectIDs"] = $projectIDs;
-    $filter['taskID'] and $sql1[] = prepare("(task.taskID = %d)", $filter["taskID"]);
-    $filter['taskID'] and $sql2[] = prepare("(task.taskID = %d)", $filter["taskID"]);
+    $filter['taskID'] and $sql1[] = prepare("(task.taskID = %d AND task.taskStatus!='deleted')", $filter["taskID"]);
+    $filter['taskID'] and $sql2[] = prepare("(task.taskID = %d AND task.taskStatus!='deleted')", $filter["taskID"]);
     $filter['taskID'] and $sql3[] = prepare("(tsiHint.taskID = %d)", $filter["taskID"]);
     $filter["fromDate"] and $sql1[] = prepare("(date(commentCreatedTime) >= '%s')", $filter["fromDate"]);
     $filter["fromDate"] and $sql2[] = prepare("(dateTimeSheetItem >= '%s')", $filter["fromDate"]);
@@ -882,7 +882,7 @@ class comment extends db_entity {
                     FROM comment
                LEFT JOIN task on comment.commentMasterID = task.taskID
                          ".$client_join."
-                   WHERE commentMaster = 'task'
+                   WHERE commentMaster = 'task' AND task.taskStatus!='deleted'
                          ".$filter1."
                 ORDER BY commentCreatedTime, commentCreatedUser"
                 ,$_FORM["maxCommentLength"]);
@@ -923,8 +923,8 @@ class comment extends db_entity {
                          ,SUBSTRING(timeSheetItem.comment,1,%d) AS comment_text
                      FROM timeSheetItem
                 LEFT JOIN task on timeSheetItem.taskID = task.taskID
-                    WHERE 1
-                          ".$filter2."
+                    WHERE 1 AND task.taskStatus!='deleted'
+                          ".$filter2." 
                  ORDER BY dateTimeSheetItem"
                  ,$_FORM["maxCommentLength"]);
 
@@ -961,7 +961,7 @@ class comment extends db_entity {
                          ,task.taskName
                      FROM tsiHint
                 LEFT JOIN task on tsiHint.taskID = task.taskID
-                    WHERE 1
+                    WHERE 1 AND task.taskStatus!='deleted'
                           ".$filter3."
                  ORDER BY tsiHint.date"
                  ,$_FORM["maxCommentLength"]);
