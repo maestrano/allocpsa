@@ -188,10 +188,6 @@ ALTER TABLE product ADD productCode varchar(255) NOT NULL;
 -- Currencies
 --
 UPDATE currencyType SET currencyTypeActive=true, numberToBasic=2;
-INSERT INTO currencyType (currencyTypeID,currencyTypeLabel,currencyTypeName,currencyTypeSeq,currencyTypeActive, numberToBasic) VALUES ('XPF','Fr','CFP franc','7600',true,2);
-INSERT INTO currencyType (currencyTypeID,currencyTypeLabel,currencyTypeName,currencyTypeSeq,currencyTypeActive, numberToBasic) VALUES ('YER','﷼','Yemeni rial','11750',true,2);
-INSERT INTO currencyType (currencyTypeID,currencyTypeLabel,currencyTypeName,currencyTypeSeq,currencyTypeActive, numberToBasic) VALUES ('ZAR','R','South African rand','9900',true,2);
-
 
 --
 -- Account
