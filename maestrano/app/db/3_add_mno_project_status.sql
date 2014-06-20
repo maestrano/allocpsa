@@ -176,7 +176,6 @@ END
 --
 ALTER TABLE tf ADD accountTypeID varchar(255) NOT NULL;
 ALTER TABLE tf ADD tfCode varchar(255) NOT NULL;
-ALTER TABLE tf ADD tfActive boolean NOT NULL DEFAULT true;
 
 --
 -- Modify table product
