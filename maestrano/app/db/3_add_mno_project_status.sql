@@ -36,7 +36,7 @@ END
 DELIMITER ;
 DROP TRIGGER IF EXISTS `after_insert_task`;
 DELIMITER //
-CREATE TRIGGER `after_insert_task` AFTERINSERT ON `task`
+CREATE TRIGGER `after_insert_task` AFTER INSERT ON `task`
  FOR EACH ROW BEGIN
     call update_search_index("task",NEW.taskID);
     IF EXISTS (SELECT * FROM task_assignees WHERE task_id=NEW.taskID and person_id=NEW.personID) AND (NEW.personID IS NOT NULL) THEN 
