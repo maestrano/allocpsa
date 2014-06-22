@@ -27,7 +27,7 @@ class MnoSoaItem extends MnoSoaBaseItem
                   FROM      product prod 
                             LEFT OUTER JOIN productCost prodCostActive 
                             ON  prod.productID = prodCostActive.productID AND 
-                                prodCostActive.productCostID = (SELECT max(productCostID) FROM productCost WHERE productID = '$this->_local_item_id' and productCostActive = 1)
+                                prodCostActive.productCostID = (SELECT max(productCostID) FROM productCost WHERE productID = '{$this->_local_item_id}' and productCostActive = 1)
                   WHERE prod.productID = '$id'";
         
         $item = $this->_db->query($item_query);
@@ -71,14 +71,19 @@ class MnoSoaItem extends MnoSoaBaseItem
         $description = $this->pull_set_or_delete_value($this->_description);
         // PULL TYPE
         $type = $this->pull_set_or_delete_value($this->_type);
+        $type = (empty($type)) ? "PURCHASED" : $type;
         // PULL UNIT
         $unit = $this->pull_set_or_delete_value($this->_unit);
+        $unit = (empty($unit)) ? "EACH" : $unit;
         // PULL SALE PRICE/CURRENCY
         $salePrice = floor(floatval($this->pull_set_or_delete_value($this->_sale->price, 0)) * 100);
+        $salePrice = (empty($salePrice)) ? "0" : $salePrice;
         $saleCurrency = $this->pull_set_or_delete_value($this->_sale->currency);
+        $saleCurrency = (empty($saleCurrency)) ? "USD" : $saleCurrency;
         // PULL PURCHASE PRICE/CURRENCY
         $purchasePrice = floor(floatval($this->pull_set_or_delete_value($this->_purchase->price, 0)) * 100);
         $purchaseCurrency = $this->pull_set_or_delete_value($this->_purchase->currency);
+        $purchaseCurrency = (empty($purchaseCurrency)) ? "USD" : $purchaseCurrency;
         // PULL STATUS
         $status = $this->mapStatusToLocalFormat($this->_status);
         // UPDATE ITEM
@@ -89,7 +94,7 @@ class MnoSoaItem extends MnoSoaBaseItem
             $item_query = " UPDATE product
                             SET productCode='$code', productName='$name', description='$description', productTypeID='$type', productUnit='$unit', 
                                 sellPrice='$salePrice', sellPriceCurrencyTypeID='$saleCurrency', productActive='$status'
-                            WHERE productID = '$this->_local_item_id'";
+                            WHERE productID = '{$this->_local_item_id}'";
             $this->_db->query($item_query);
         // INSERT ITEM
         } else {
@@ -107,7 +112,7 @@ class MnoSoaItem extends MnoSoaBaseItem
         
         // PULL PURCHASE PRICE/CURRENCY/STATUS
         if (!empty($this->_purchase)) {
-            $product_cost_query = "SELECT productCostID FROM productCost WHERE productID='$this->_local_item_id' AND productCostActive='1'";
+            $product_cost_query = "SELECT productCostID FROM productCost WHERE productID='{$this->_local_item_id}' AND productCostActive='1'";
             $product_cost = $this->_db->query($product_cost_query);
             if (!empty($product_cost)) { 
                 $product_cost = (object) $this->_db->next_record();
@@ -119,7 +124,7 @@ class MnoSoaItem extends MnoSoaBaseItem
             // UPDATE PURCHASE PRICE
             if (!empty($product_cost_id)) {
                 $update_query = "   UPDATE productCost
-                                    SET productID = '$this->_local_item_id', amount='$purchasePrice', currencyTypeID='$purchaseCurrency', productCostActive='1'
+                                    SET productID = '{$this->_local_item_id}', amount='$purchasePrice', currencyTypeID='$purchaseCurrency', productCostActive='1'
                                     WHERE productCostID='$product_cost_id'
                                 ";
                 $this->_db->query($update_query);
@@ -128,13 +133,13 @@ class MnoSoaItem extends MnoSoaBaseItem
                 $insert_query = " INSERT productCost 
                                   (productID, tfID, amount, currencyTypeID, isPercentage, description, tax, productCostActive)
                                   VALUES
-                                  ('$this->_local_item_id', '1', '$purchasePrice', '$purchaseCurrency', '0', NULL, NULL, '1')
+                                  ('{$this->_local_item_id}', '1', '$purchasePrice', '$purchaseCurrency', '0', NULL, NULL, '1')
                                 ";                
                 $this->_db->query($insert_query);
             }
         } else {
         // RESET 
-            $update_query = "UPDATE productCost SET productCostActive='0' WHERE productID='$this->_local_item_id'";
+            $update_query = "UPDATE productCost SET productCostActive='0' WHERE productID='{$this->_local_item_id}'";
             $this->_db->query($update_query);
         }
         

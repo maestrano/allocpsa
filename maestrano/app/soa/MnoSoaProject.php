@@ -58,6 +58,7 @@ class MnoSoaProject extends MnoSoaBaseProject
         $completed_date = $this->map_date_to_local_format($this->_completed_date);
         $status = $this->map_project_status_to_local_format($this->_status);
         $priority = $this->pull_set_or_delete_value($this->_priority);
+        $format_priority = (empty($priority)) ? "'3'" : "'$priority'";
         
         MnoSoaLogger::debug("before project owner");
         
@@ -74,16 +75,22 @@ class MnoSoaProject extends MnoSoaBaseProject
             $this->_local_project_id = $local_project_id_obj->_id;
             $project_query = 
                     "UPDATE project "
-                  . "SET projectName='$name', projectComments='$description', dateTargetStart=FROM_UNIXTIME('$start_date'), projectStatus='$status', "
-                  . "projectPriority='$priority', projectCreatedUser='$local_project_owner_id', "
-                  . "dateActualCompletion=FROM_UNIXTIME('$completed_date'), dateTargetCompletion=FROM_UNIXTIME('$due_date') "
-                  . "WHERE projectID='$this->_local_project_id'";
+                  . "SET projectName='$name', projectComments='$description', ";
+            if (empty($start_date)) { $project_query .= "dateTargetStart=null, "; } else { $project_query .= "dateTargetStart=FROM_UNIXTIME('$start_date'), "; }
+            $project_query .= "projectStatus='$status', "
+                  . "projectPriority=$format_priority, projectCreatedUser='$local_project_owner_id', ";
+            if (empty($completed_date)) { $project_query .= "dateActualCompletion=null, "; } else { $project_query .= "dateActualCompletion=FROM_UNIXTIME('$completed_date'), "; }
+            if (empty($due_date)) { $project_query .= "dateTargetCompletion=null "; } else { $project_query .= "dateTargetCompletion=FROM_UNIXTIME('$due_date') "; }
+            $project_query .= "WHERE projectID='$this->_local_project_id'";
             $this->_db->query($project_query);
         } else if (MnoSoaDB::isNewIdentifier($local_project_id_obj)) {
+            $format_start_date = (empty($start_date)) ? "null" : "FROM_UNIXTIME('$start_date')";
+            $format_completed_date = (empty($completed_date)) ? "null" : "FROM_UNIXTIME('$completed_date')";
+            $format_due_date = (empty($due_date)) ? "null" : "FROM_UNIXTIME('$due_date')";
             $project_query = 
                     "INSERT INTO project (projectName, projectComments, dateTargetStart, projectStatus, projectPriority, projectCreatedUser, dateActualCompletion, dateTargetCompletion, currencyTypeID, projectType) "
                   . "VALUES "
-                  . "('$name', '$description', FROM_UNIXTIME('$start_date'), '$status', '$priority', '$local_project_owner_id', FROM_UNIXTIME('$completed_date'), FROM_UNIXTIME('$due_date'), 'USD', 'Project')";
+                  . "('$name', '$description', $format_start_date, '$status', $format_priority, '$local_project_owner_id', $format_completed_date, $format_due_date, 'USD', 'Project')";
             MnoSoaLogger::debug("project_query=".$project_query);
             $this->_db->query($project_query);
             $this->_local_project_id = $this->_db->get_insert_id();
@@ -327,10 +334,10 @@ class MnoSoaProject extends MnoSoaBaseProject
                     if (empty($local_assignedTo_user_id)) { continue; }
                     
                     $tasks_query = "INSERT INTO task 
-                                    (taskName,taskDescription,dateTargetStart,dateTargetCompletion,taskStatus,personID,dateActualCompletion,mno_tasklist_id,projectID) 
+                                    (taskName,taskDescription,dateTargetStart,dateTargetCompletion,taskStatus,personID,dateActualCompletion,mno_tasklist_id,projectID,priority) 
                                     VALUES 
                                     ('$name', '$description', FROM_UNIXTIME('$start_date'), FROM_UNIXTIME('$due_date'), '$status', 
-                                     '$local_assignedTo_user_id', FROM_UNIXTIME('$completed_date'), '$mno_tasklist_id', '{$this->_local_project_id}')";
+                                     '$local_assignedTo_user_id', FROM_UNIXTIME('$completed_date'), '$mno_tasklist_id', '{$this->_local_project_id}', '3')";
                     
                     $this->_db->query($tasks_query);
                     $local_task_id = $this->_db->get_insert_id();
