@@ -284,10 +284,14 @@ class MnoSoaProject extends MnoSoaBaseProject
                 $local_task_id = null;
                 
                 $name = $this->pull_set_or_delete_value($task->name);
+                $name = (empty($name)) ? "No name" : $name;
                 $description = $this->pull_set_or_delete_value($task->description);
                 $start_date = $this->map_date_to_local_format($task->startDate);
+                $start_date = (empty($start_date)) ? "null" : "FROM_UNIXTIME('$start_date')";
                 $due_date = $this->map_date_to_local_format($task->dueDate);
+                $due_date = (empty($due_date)) ? "null" : "FROM_UNIXTIME('$due_date')";
                 $completed_date = $this->map_date_to_local_format($task->completedDate);
+                $completed_date = (empty($completed_date)) ? "null" : "FROM_UNIXTIME('$completed_date')";
                 $mno_tasklist_id = $this->pull_set_or_delete_value($task->tasklist);
                 
                 MnoSoaLogger::debug("after assigning");
@@ -314,8 +318,8 @@ class MnoSoaProject extends MnoSoaBaseProject
                     $this->_db->query("SET @bypass_before_update_task = TRUE;");
                     
                     $tasks_query = "UPDATE  task 
-                                    SET     taskName='$name', taskDescription='$description', dateTargetStart=FROM_UNIXTIME('$start_date'), dateTargetCompletion=FROM_UNIXTIME('$due_date'), 
-                                            taskStatus='$status', personID='$local_assignedTo_user_id', dateActualCompletion=FROM_UNIXTIME('$completed_date'), mno_tasklist_id='$mno_tasklist_id', 
+                                    SET     taskName='$name', taskDescription='$description', dateTargetStart=$start_date, dateTargetCompletion=$due_date, 
+                                            taskStatus='$status', personID='$local_assignedTo_user_id', dateActualCompletion=$completed_date, mno_tasklist_id='$mno_tasklist_id', 
                                             projectID='{$this->_local_project_id}'
                                     WHERE   taskID='$local_task_id'";
                     
@@ -330,17 +334,22 @@ class MnoSoaProject extends MnoSoaBaseProject
                     MnoSoaLogger::debug("isNewIdentifier");
                     $status = $this->map_task_status_to_local_format($task->status, null);
                     $mno_assignedTo_user_id = $this->find_first_active_mno_entity_assignee($task);
+                    MnoSoaLogger::debug("mno_assignedTo_user_id=".$mno_assignedTo_user_id);
                     $local_assignedTo_user_id = MnoSoaDB::getLocalUserIdByMnoUserId($mno_assignedTo_user_id);
+                    MnoSoaLogger::debug("local_assignedTo_user_id=".$local_assignedTo_user_id);
                     if (empty($local_assignedTo_user_id)) { continue; }
                     
                     $tasks_query = "INSERT INTO task 
                                     (taskName,taskDescription,dateTargetStart,dateTargetCompletion,taskStatus,personID,dateActualCompletion,mno_tasklist_id,projectID,priority) 
                                     VALUES 
-                                    ('$name', '$description', FROM_UNIXTIME('$start_date'), FROM_UNIXTIME('$due_date'), '$status', 
-                                     '$local_assignedTo_user_id', FROM_UNIXTIME('$completed_date'), '$mno_tasklist_id', '{$this->_local_project_id}', '3')";
+                                    ('$name', '$description', $start_date, $due_date, '$status', 
+                                     '$local_assignedTo_user_id', $completed_date, '$mno_tasklist_id', '{$this->_local_project_id}', '3')";
                     
+                    MnoSoaLogger::debug("tasks_query=$tasks_query");
+                                     
                     $this->_db->query($tasks_query);
                     $local_task_id = $this->_db->get_insert_id();
+                    MnoSoaLogger::debug("local_task_id=$local_task_id");
                     MnoSoaDB::addIdMapEntry($local_task_id, "TASKS", $mno_task_id, "TASKS");
                 }
                 
