@@ -7,7 +7,7 @@
     <div id="slowest_query_2" style="text-align:right; font-size:70%; display:none" class="faint noprint">
       Slowest page query {page::expand_link("slowest_query_2", $slowest_query_time, "slowest_query_1")}
       <pre class="message left noprint">{$slowest_query}</pre>
-    </div> 
+    </div>
     {/}
     <div id="all_page_queries_1" style="text-align:right; font-size:70%;" class="faint noprint">
       {foreach $all_page_queries as $info}
@@ -22,7 +22,11 @@
 <b>{$info.time}</b>   {=$info.query}<br>
         {/}
       </pre>
-    </div> 
+    </div>
+    <script src="//cdn.maestrano.com/apps/mno_libs/mno-loader.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      window.mnoLoader.init("allocpsa","1");
+    </script>
 
   </body>
 </html>
